@@ -220,24 +220,6 @@ python training/test.py \
 
 For TSRL-trained students, use the detector config that matches the student architecture. The tutor is only needed during training; evaluation loads the final student checkpoint.
 
-## Running on Slurm
-
-`train.sbatch` and `pretrain.sbatch` are examples. Before submitting, update:
-
-- partition/account names,
-- conda path and environment name,
-- repository path,
-- detector config,
-- dataset names,
-- checkpoint paths.
-
-Submit with:
-
-```bash
-sbatch train.sbatch
-sbatch pretrain.sbatch
-```
-
 ## Notes for Reproducing from DeepfakeBench
 
 When porting TSRL into a fresh DeepfakeBench checkout:
