@@ -1,0 +1,125 @@
+# log dir 
+log_dir: ./logs/training//iid
+
+ddp: false
+# model setting
+pretrained: ./training/pretrained/xception-b5690688.pth #./training/pretrained/xception-b5690688.pth   # path to a pre-trained model, if using one
+explicit_extractor_pretrained: ./training/pretrained/backbone.pth
+model_name: iid   # model name
+backbone_name: xception  # backbone name
+restore_ckpt: 'None'
+#backbone setting
+backbone_config:
+  mode: adjust_channel_iid #adjust_channel
+  num_classes: 2
+  inc: 3
+  dropout: false
+
+# dataset
+all_dataset: [FaceForensics++, FF-F2F, FF-DF, FF-FS, FF-NT, FaceShifter, DeepFakeDetection, Celeb-DF-v1, Celeb-DF-v2, DFDCP, DFDC, DeeperForensics-1.0, UADFV]
+train_dataset: [FaceForensics++]
+test_dataset: [Celeb-DF-v2, roop]
+dataset_type: iid
+compression: c23  # compression-level for videos
+train_batchSize: 32   # training batch size
+test_batchSize: 32   # test batch size
+workers: 0   # number of data loading workers
+frame_num: {'train': 32, 'test': 32}   # number of frames to use per video in training and testing
+resolution: 256   # resolution of output image to network
+with_mask: false   # whether to include mask information in the input
+with_landmark: false   # whether to include facial landmark information in the input
+
+
+# data augmentation
+use_data_augmentation: true  # Add this flag to enable/disable data augmentation
+data_aug:
+  flip_prob: 0.5
+  rotate_prob: 0.5
+  rotate_limit: [-10, 10]
+  blur_prob: 0.5
+  blur_limit: [3, 7]
+  brightness_prob: 0.5
+  brightness_limit: [-0.1, 0.1]
+  contrast_limit: [-0.1, 0.1]
+  quality_lower: 40
+  quality_upper: 100
+  remove_attribute: false
+  gridmask_prob: 0
+  remove_nose_prob: 0.0
+  remove_eyes_prob: 0.0
+
+
+# mean and std for normalization
+mean: [0.5, 0.5, 0.5]
+std: [0.5, 0.5, 0.5]
+dry_run: false
+SWA: false
+# optimizer config
+optimizer:
+  # choose between 'adam' and 'sgd'
+  type: adam
+  adam:
+    lr: 0.0002  # learning rate
+    beta1: 0.9  # beta1 for Adam optimizer
+    beta2: 0.999 # beta2 for Adam optimizer
+    eps: 0.00000001  # epsilon for Adam optimizer
+    weight_decay: 0.0005  # weight decay for regularization
+    amsgrad: false
+  sgd:
+    lr: 0.0002  # learning rate
+    momentum: 0.9  # momentum for SGD optimizer
+    weight_decay: 0.0005  # weight decay for regularization
+  sam:
+    lr: 0.001  # learning rate
+    momentum: 0.9  # momentum for SGD optimizer
+
+# training config
+lr_scheduler: null   # learning rate scheduler step
+lr_step: 3
+lr_gamma: 0.4   # learning rate scheduler
+nEpochs: 30   # number of epochs to train for
+start_epoch: 0   # manual epoch number (useful for restarts)
+save_epoch: 1   # interval epochs for saving models
+rec_iter: 100   # interval iterations for recording
+logdir: ./logs   # folder to output images and logs
+manualSeed: 1024   # manual seed for random number generation
+save_ckpt: true   # whether to save checkpoint
+save_feat: true   # whether to save features
+
+# loss function
+loss_func: cross_entropy   # loss function to use cross_entropy
+
+losstype: null
+
+# metric
+metric_scoring: auc   # metric for evaluation (auc, acc, eer, ap)
+
+# cuda
+
+cuda: true   # whether to use CUDA acceleration
+cudnn: true   # whether to use CuDNN for convolution operations
+
+embedding_size: 512
+# =======================================================
+# ====== Reinforcement Learning Tutor Settings ======
+# =======================================================
+use_rl_trainer: true        # [新增] 总开关，设为true以启用RL训练器
+
+# --- StateManager Configs ---
+# 对于CLIP ViT模型，特征通常从'pooler_output'中提取
+feature_layer_name: 'pooler_output' # [新增] 指定特征提取层
+alpha_ema: 0.1              # [新增] EMA损失的平滑系数alpha
+
+rl_agent: 'ppo'
+# --- TutorPPO Network & Algorithm Configs ---
+# 状态维度 = CLIP特征(512) + EMA损失(1) + 遗忘次数(1) + 置信度(1) + 是否正确(2) = 517
+state_dim: 517              # [修改] 根据CLIP ViT的特征维度重新计算
+tutor_lr_actor: 0.0001      # [新增] 导师Actor网络的学习率
+tutor_lr_critic: 0.0003     # [新增] 导师Critic网络的学习率
+ppo_gamma: 0.99             # [新增] PPO折扣因子
+ppo_epochs: 8               # [新增] PPO每次更新的轮次
+ppo_epsilon: 0.2            # [新增] PPO裁剪系数
+ppo_entropy_coef: 0.05      # [新增] PPO熵系数，鼓励探索
+action_weight_min: 0.1      # [新增] 损失权重的最小值
+action_weight_max: 5.0      # [新增] 损失权重的最大值
+difficulty_threshold: 0.5   # [新增] 定义“难题”的EMA Loss阈值

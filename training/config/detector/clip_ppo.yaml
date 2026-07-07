@@ -1,0 +1,147 @@
+# log dir 
+log_dir: ./logs/training/
+
+# model setting
+model_name: clip
+backbone_name: vit
+pretrained: ./training/pretrained/xception-b5690688.pth
+
+# backbone setting
+backbone_config:
+  mode: original
+  num_classes: 2
+  inc: 3
+  dropout: false
+
+# dataset
+all_dataset: [FaceForensics++, FF-F2F, FF-DF, FF-FS, FF-NT, FaceShifter, DeepFakeDetection, Celeb-DF-v1, Celeb-DF-v2, DFDCP, DFDC, DeeperForensics-1.0, UADFV]
+train_dataset: [FaceForensics++, DeepFakeDetection, Celeb-DF-v2]
+test_dataset: [FaceForensics++, DeepFakeDetection, Celeb-DF-v2, DFDC]
+compression: c23
+train_batchSize: 8       # [修改] 降低批次大小以节省显存
+test_batchSize: 32
+workers: 4               # [修改] 减少进程数以节省系统内存(RAM)
+frame_num: 
+  train: 16              # [修改] 减少训练帧数以节省显存
+  test: 32
+resolution: 224
+with_mask: false
+with_landmark: false
+sample_size: 224
+data_manner: lmdb
+lmdb: true
+rgb_dir: ./datasets/rgb
+lmdb_dir: ./datasets/lmdb
+dataset_json_folder: preprocessing/dataset_json
+
+# data augmentation
+use_data_augmentation: true
+data_aug:
+  flip_prob: 0.5
+  rotate_prob: 0.5
+  rotate_limit: [-10, 10]
+  blur_prob: 0.5
+  blur_limit: [3, 7]
+  brightness_prob: 0.5
+  brightness_limit: [-0.1, 0.1]
+  contrast_limit: [-0.1, 0.1]
+  quality_lower: 40
+  quality_upper: 100
+
+# mean and std for normalization
+mean: [0.5, 0.5, 0.5]
+std: [0.5, 0.5, 0.5]
+
+# optimizer config
+optimizer:
+  type: adam
+  adam:
+    lr: 0.00001
+    beta1: 0.9
+    beta2: 0.999
+    eps: 1.0e-08
+    weight_decay: 0.0005
+    amsgrad: false
+  sgd:
+    lr: 0.0002
+    momentum: 0.9
+    weight_decay: 0.0005
+
+# training config
+lr_scheduler: step        # [修改] 为学生模型启用学习率调度器
+lr_step: 10               # [新增] 每10个epoch衰减一次
+lr_gamma: 0.5             # [新增] 每次衰减为原来的一半
+nEpochs: 10               # [修改] 增加总训练轮次
+start_epoch: 0
+save_epoch: 1
+rec_iter: 100
+logdir: ./logs
+manualSeed: 1024
+save_ckpt: true
+save_feat: true
+
+# loss function
+loss_func: cross_entropy
+losstype: null
+
+# metric
+metric_scoring: auc
+
+# cuda
+cuda: true
+cudnn: true
+
+# Other settings from log
+mode: train
+dry_run: false
+SWA: false
+save_avg: true
+label_dict: 
+  DFD_fake: 1
+  DFD_real: 0
+  FF-SH: 1
+  FF-F2F: 1
+  FF-DF: 1
+  FF-FS: 1
+  FF-NT: 1
+  FF-FH: 1
+  FF-real: 0
+  CelebDFv1_real: 0
+  CelebDFv1_fake: 1
+  CelebDFv2_real: 0
+  CelebDFv2_fake: 1
+  DFDCP_Real: 0
+  DFDCP_FakeA: 1
+  DFDCP_FakeB: 1
+  DFDC_Fake: 1
+  DFDC_Real: 0
+  DF_fake: 1
+  DF_real: 0
+  UADFV_Fake: 1
+  UADFV_Real: 0
+  roop_Real: 0
+  roop_Fake: 1
+
+# =======================================================
+# ====== Reinforcement Learning Tutor Settings ======
+# =======================================================
+use_rl_trainer: true        # [新增] 总开关，设为true以启用RL训练器
+
+# --- StateManager Configs ---
+# 对于CLIP ViT模型，特征通常从'pooler_output'中提取
+feature_layer_name: 'pooler_output' # [新增] 指定特征提取层
+alpha_ema: 0.1              # [新增] EMA损失的平滑系数alpha
+
+rl_agent: 'ppo'
+# --- TutorPPO Network & Algorithm Configs ---
+# 状态维度 = CLIP特征(512) + EMA损失(1) + 遗忘次数(1) + 置信度(1) + 是否正确(2) = 517
+state_dim: 517              # [修改] 根据CLIP ViT的特征维度重新计算
+tutor_lr_actor: 0.0001      # [新增] 导师Actor网络的学习率
+tutor_lr_critic: 0.0003     # [新增] 导师Critic网络的学习率
+ppo_gamma: 0.99             # [新增] PPO折扣因子
+ppo_epochs: 8               # [新增] PPO每次更新的轮次
+ppo_epsilon: 0.2            # [新增] PPO裁剪系数
+ppo_entropy_coef: 0.05      # [新增] PPO熵系数，鼓励探索
+action_weight_min: 0.1      # [新增] 损失权重的最小值
+action_weight_max: 5.0      # [新增] 损失权重的最大值
+difficulty_threshold: 0.5   # [新增] 定义“难题”的EMA Loss阈值

@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Environments
+.env
+.venv/
+venv/
+env/
+*.egg-info/
+
+# Data and generated artifacts
+datasets/
+datasets_v2/
+datasets_lmdbs/
+preprocessing/dataset_json/
+preprocessing/dataset_json_v*/
+preprocessing/logs/*.log
+logs/
+eval/
+wandb/
+runs/
+
+# Model weights and large binaries
+training/pretrained/
+*.pth
+*.pt
+*.ckpt
+*.onnx
+*.lmdb
+*.mdb
+preprocessing/dlib_tools/*.dat
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Slurm
+slurm-*.out

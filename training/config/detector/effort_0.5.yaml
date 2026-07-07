@@ -1,0 +1,115 @@
+# log dir 
+log_dir: ./zhiyuanyan/logs/benchv2/icml25/release
+
+# model setting
+pretrained: 'no need to provide this for the effort model'
+model_name: effort   # model name
+backbone_name: vit  # backbone name
+
+#backbone setting
+backbone_config:
+  mode: original
+  num_classes: 2
+  inc: 3
+  dropout: false
+
+# dataset
+all_dataset: [FaceForensics++, FF-F2F, FF-DF, FF-FS, FF-NT, FaceShifter, DeepFakeDetection, Celeb-DF-v1, Celeb-DF-v2, DFDCP, DFDC, DeeperForensics-1.0, UADFV]
+train_dataset: [FaceForensics++]
+test_dataset: [Celeb-DF-v2, FaceShifter, DeeperForensics-1.0]
+
+compression: c23  # compression-level for videos
+train_batchSize: 64   # training batch size
+test_batchSize: 32   # test batch size
+workers: 8   # number of data loading workers
+frame_num: {'train': 8, 'test': 8}   # number of frames to use per video in training and testing
+resolution: 224   # resolution of output image to network
+with_mask: false   # whether to include mask information in the input
+with_landmark: false   # whether to include facial landmark information in the input
+
+
+# data augmentation
+use_data_augmentation: true  # Add this flag to enable/disable data augmentation
+data_aug:
+  flip_prob: 0.5
+  rotate_prob: 0.5
+  rotate_limit: [-10, 10]
+  blur_prob: 0.5
+  blur_limit: [3, 7]
+  brightness_prob: 0.5
+  brightness_limit: [-0.1, 0.1]
+  contrast_limit: [-0.1, 0.1]
+  quality_lower: 40
+  quality_upper: 100
+
+# mean and std for normalization
+mean: [0.48145466, 0.4578275, 0.40821073]
+std: [0.26862954, 0.26130258, 0.27577711]
+
+# optimizer config
+optimizer:
+  # choose between 'adam' and 'sgd'
+  type: adam
+  adam:
+    lr: 0.0001  # learning rate
+    beta1: 0.9  # beta1 for Adam optimizer
+    beta2: 0.999 # beta2 for Adam optimizer
+    eps: 0.00000001  # epsilon for Adam optimizer
+    weight_decay: 0.0005  # weight decay for regularization
+    amsgrad: false
+  sgd:
+    lr: 0.0002  # learning rate
+    momentum: 0.9  # momentum for SGD optimizer
+    weight_decay: 0.0005  # weight decay for regularization
+
+# training config
+lr_scheduler: step      # <-- 将 null 修改为 step
+lr_step: 10             # <-- 新增：每10个epoch学习率衰减一次
+lr_gamma: 0.5           # <-- 新增：每次衰减为原来的0.5倍nEpochs: 50   # number of epochs to train for
+nEpochs: 10
+start_epoch: 0   # manual epoch number (useful for restarts)
+save_epoch: 1   # interval epochs for saving models
+rec_iter: 100   # interval iterations for recording
+logdir: ./logs   # folder to output images and logs
+manualSeed: 1024   # manual seed for random number generation
+save_ckpt: true   # whether to save checkpoint
+save_feat: true   # whether to save features
+
+# loss function
+loss_func: cross_entropy   # loss function to use
+losstype: cosine
+dry_run: false
+SWA: false
+save_avg: true
+# metric
+metric_scoring: auc   # metric for evaluation (auc, acc, eer, ap)
+sample_size: 224 # Restored from log
+data_manner: lmdb # Restored from log
+lmdb: true # Restored from log
+# cuda
+ngpu: 1   # number of GPUs to use
+cuda: true   # whether to use CUDA acceleration
+cudnn: true   # whether to use CuDNN for convolution operations
+
+save_avg: true
+# ====== Reinforcement Learning Tutor Settings ======
+# 这个部分整合了所有与我们新框架相关的配置
+use_rl_trainer: true       # [新增] 总开关，设为true以启用RL训练器
+
+# --- Wrapper & StateManager Configs ---
+feature_layer_name: 'avgpool' # [新增] 指定要提取特征的层名 (需要根据你的模型确认)
+alpha_ema: 0.1             # [新增] EMA损失的平滑系数alpha
+
+# --- TutorPPO Network & Algorithm Configs ---
+state_dim: 517             # [新增] 状态向量s的总维度 (下面有说明)
+tutor_lr_actor: 0.0001
+tutor_lr_critic: 0.0003
+ppo_gamma: 0.99
+ppo_epochs: 8
+ppo_epsilon: 0.2
+action_weight_min: 0.5     # 损失权重的最小值
+action_weight_max: 2.0     # 损失权重的最大值
+difficulty_threshold: 0.7  # 定义“难题”的EMA Loss阈值
+action_weight_min: 0.1
+action_weight_max: 5.0
+ppo_entropy_coef: 0.05
